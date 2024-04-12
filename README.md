@@ -1,2 +1,3 @@
 ## Perlin Noise Trail Representation Using Vector Math 
-![perlin](https://github.com/unworried/perlin-noise/assets/65690244/6a333ec0-f37c-41d3-9903-132c9d027b26)
+![perlin](https://github.com/unworried/perlin-noise/assets/65690244/91f5acdb-ea39-477f-8f78-92c63bf821e5)
+
