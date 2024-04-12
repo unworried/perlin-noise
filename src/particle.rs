@@ -1,27 +1,28 @@
-use ::rand::{thread_rng, Rng};
-use macroquad::prelude::*;
+use macroquad::{prelude::*, rand};
 
 use crate::vector::Vector;
 use crate::SCALE;
 
-const MAX_SPEED: f32 = 4.;
+const MAX_SPEED: f32 = 1.;
 
 pub struct Particle {
     pub position: Vector,
     pub velocity: Vector,
     pub acceleration: Vector,
+    previous_position: Vector,
 }
 
 impl Particle {
     pub fn new() -> Self {
-        let x = thread_rng().gen_range(0..screen_width() as u32);
-        let y = thread_rng().gen_range(0..screen_height() as u32);
+        let x = rand::gen_range(0, 1200);
+        let y = rand::gen_range(0, 800);
         let position = Vector::new(x as f32, y as f32);
 
         Self {
             position,
             velocity: Vector::new(0., 0.),
             acceleration: Vector::new(0., 0.),
+            previous_position: position,
         }
     }
 
@@ -29,7 +30,7 @@ impl Particle {
         let x = (self.position.x / SCALE).floor() as usize;
         let y = (self.position.y / SCALE).floor() as usize;
 
-        let index = x + y * ((screen_height() / SCALE).floor() as usize);
+        let index = x + y * ((800. / SCALE).floor() as usize);
         let force = flowfield[index];
         self.acceleration.add(&force);
     }
@@ -42,25 +43,41 @@ impl Particle {
     }
 
     pub fn draw(&self) {
-        let color = Color::from_rgba(0, 0, 0, 255);
-        draw_circle(self.position.x, self.position.y, 1., color);
+        let color = Color::from_rgba(255, 255, 255, 120);
+        //draw_circle(self.position.x, self.position.y, 1., color);
+        draw_line(
+            self.position.x,
+            self.position.y,
+            self.previous_position.x,
+            self.previous_position.y,
+            1.,
+            color,
+        );
+        
+
+    }
+
+    pub fn update_previous_position(&mut self) {
+        self.previous_position = self.position;
     }
 
     pub fn wrap(&mut self) {
-        if self.position.x > screen_width() {
+        if self.position.x > 1200. {
             self.position.x = 0.;
         }
 
         if self.position.x < 0. {
-            self.position.x = screen_width();
+            self.position.x = 1200.;
         }
 
-        if self.position.y > screen_height() {
+        if self.position.y > 800. {
             self.position.y = 0.;
         }
 
         if self.position.y < 0. {
-            self.position.y = screen_height();
+            self.position.y = 800.;
         }
+
+        self.update_previous_position();
     }
 }

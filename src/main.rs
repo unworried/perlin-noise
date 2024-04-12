@@ -1,7 +1,6 @@
 use std::f32::consts::PI;
 
-use ::rand::{thread_rng, Rng};
-use macroquad::prelude::*;
+use macroquad::{prelude::*, rand};
 use noise::{NoiseFn, Perlin};
 
 use crate::particle::Particle;
@@ -10,8 +9,8 @@ use crate::vector::Vector;
 mod particle;
 mod vector;
 
-const INCREMENT: f64 = 0.1;
-const SCALE: f32 = 10.;
+const INCREMENT: f64 = 1.;
+const SCALE: f32 = 100.;
 
 fn window_conf() -> Conf {
     Conf {
@@ -27,12 +26,13 @@ async fn main() {
     let cols = (screen_width() / SCALE).floor() as usize;
     let rows = (screen_height() / SCALE).floor() as usize;
 
-    let seed = thread_rng().gen_range(0..u32::MAX);
-    let perlin = Perlin::new(seed);
+    let seed = rand::gen_range(0, u32::MAX);
+    let perlin = Perlin::default();
+
     println!("Seed: {}", seed);
 
     let mut particles: Vec<Particle> = Vec::new();
-    for _ in 0..10000 {
+    for _ in 0..1000 {
         particles.push(Particle::new());
     }
 
@@ -43,9 +43,15 @@ async fn main() {
         flowfield.set_len(cols * rows)
     };
 
+    let render_target = render_target(screen_width() as u32, screen_height() as u32);
+    //render_target.texture.set_filter(FilterMode::Linear);
+    let mut render_target_cam =
+        Camera2D::from_display_rect(Rect::new(0., 0., screen_width(), screen_height()));
+    render_target_cam.render_target = Some(render_target.clone());
+
     let mut z_offset = 0.0;
     loop {
-        clear_background(WHITE);
+        set_camera(&render_target_cam);
 
         let mut y_offset = 0.0;
         for y in 0..rows {
@@ -63,7 +69,7 @@ async fn main() {
                     y as f32 * SCALE,
                     x as f32 * SCALE + vector.x * SCALE,
                     y as f32 * SCALE + vector.y * SCALE,
-                    4.,
+                    2.,
                     color,
                 );*/
             }
@@ -76,8 +82,13 @@ async fn main() {
             particle.follow(&flowfield);
             particle.update();
             particle.draw();
+            particle.update_previous_position();
             particle.wrap();
         }
+
+        set_default_camera();
+        clear_background(BLACK);
+        draw_texture(&render_target.texture, 0., 0., WHITE);
 
         next_frame().await;
     }
